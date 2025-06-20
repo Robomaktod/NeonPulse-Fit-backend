@@ -1,0 +1,189 @@
+// Prisma schema for user calorie tracking
+// Add this to your prisma/schema.prisma file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MealTypeEnum {
+  Breakfast
+  Lunch
+  Dinner
+  Snack
+}
+
+enum FriendshipStatus {
+  Pending
+  Accepted
+  Rejected
+  Blocked
+}
+
+enum GenderEnum {
+    Male
+    Female
+}
+
+model User {
+  clerkUserId     String          @id @unique @map("clerk_user_id")
+  displayUsername String?         @unique @db.VarChar(50) @map("display_username")
+  email           String          @unique @db.VarChar(100)
+  dateOfBirth     DateTime        @map("date_of_birth")
+  heightCm        Int             @db.SmallInt @map("height_cm")
+  gender          GenderEnum
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @default(now()) @map("updated_at")
+
+  weightLogs      UserWeightLog[]
+  exerciseLogs    UserExerciseLog[]
+  activityLogs    UserActivityLog[]
+  friendshipsRequested Friendship[] @relation("FriendshipRequester")
+  friendshipsAccepted  Friendship[] @relation("FriendshipAccepter")
+  foodsCreated    Food[]
+
+  nutritionLogs   NutritionLog[]
+
+  @@index([clerkUserId])
+  @@index([displayUsername])
+  @@map("users")
+}
+
+model UserWeightLog {
+  weightLogId Int      @id @default(autoincrement()) @map("weight_log_id")
+  userId      String   @map("user_id")
+  weightKg    Decimal  @db.Decimal(5, 2) @map("weight_kg")
+  loggedAt    DateTime @default(now()) @map("logged_at")
+  notes       String?
+
+  user        User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, loggedAt])
+  @@index([userId])
+  @@map("user_weight_logs")
+}
+
+model ExerciseType {
+  exerciseTypeId     Int      @id @default(autoincrement()) @map("exercise_type_id")
+  name               String   @unique @db.VarChar(100)
+  description        String?
+  primaryMuscleGroup String?  @db.VarChar(100) @map("primary_muscle_group")
+  equipmentNeeded    String?  @db.VarChar(255) @map("equipment_needed")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @map("updated_at")
+
+  exerciseLogs       UserExerciseLog[]
+
+  @@index([name])
+  @@map("exercise_types")
+}
+
+model UserExerciseLog {
+  exerciseLogId    Int       @id @default(autoincrement()) @map("exercise_log_id")
+  userId           String    @map("user_id")
+  exerciseTypeId   Int       @map("exercise_type_id")
+  loggedAt         DateTime  @default(now()) @map("logged_at")
+  sets             Int?
+  repsPerSet       Int?      @map("reps_per_set")
+  weightKg         Decimal?  @db.Decimal(7, 2) @map("weight_kg")
+  durationMinutes  Int?      @map("duration_minutes")
+  distanceKm       Decimal?  @db.Decimal(7, 2) @map("distance_km")
+  isPersonalRecord Boolean   @default(false) @map("is_personal_record")
+  notes            String?
+
+  user             User          @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade, onUpdate: Cascade)
+  exerciseType     ExerciseType  @relation(fields: [exerciseTypeId], references: [exerciseTypeId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([exerciseTypeId])
+  @@index([userId, loggedAt])
+  @@map("user_exercise_logs")
+}
+
+model ActivityCategory {
+  activityCategoryId Int       @id @default(autoincrement()) @map("activity_category_id")
+  name               String    @unique @db.VarChar(100)
+  description        String?
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @default(now()) @map("updated_at")
+
+  activityLogs       UserActivityLog[]
+
+  @@index([name])
+  @@map("activity_categories")
+}
+
+model UserActivityLog {
+  activityLogId       Int       @id @default(autoincrement()) @map("activity_log_id")
+  userId              String    @map("user_id")
+  activityCategoryId  Int       @map("activity_category_id")
+  startedAt           DateTime  @default(now()) @map("started_at")
+  durationMinutes     Int       @map("duration_minutes")
+  caloriesBurnedEstimated Int?  @map("calories_burned_estimated")
+  distanceKm          Decimal?  @db.Decimal(7, 2) @map("distance_km")
+  notes               String?
+
+  user                User            @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade, onUpdate: Cascade)
+  activityCategory    ActivityCategory @relation(fields: [activityCategoryId], references: [activityCategoryId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([activityCategoryId])
+  @@index([userId, startedAt])
+  @@map("user_activity_logs")
+}
+
+model Friendship {
+  userIdRequester String   @map("user_id_requester")
+  userIdAccepter  String   @map("user_id_accepter")
+  status          FriendshipStatus @default(Pending) @map("status")
+  requestedAt     DateTime @default(now()) @map("requested_at")
+  respondedAt     DateTime?
+
+  requester       User     @relation("FriendshipRequester", fields: [userIdRequester], references: [clerkUserId], onDelete: Cascade, onUpdate: Cascade)
+  accepter        User     @relation("FriendshipAccepter", fields: [userIdAccepter], references: [clerkUserId], onDelete: Cascade, onUpdate: Cascade)
+
+  @@id([userIdRequester, userIdAccepter])
+  @@map("friendships")
+}
+
+model Food {
+  foodId          Int       @id @default(autoincrement()) @map("food_id")
+  createdByUserId String?   @map("created_by_user_id")
+  name            String    @db.VarChar(255)
+  servingSizeG    Decimal   @db.Decimal(7, 2) @map("serving_size_g")
+  calories        Decimal   @db.Decimal(7, 2)
+  proteinG        Decimal?  @db.Decimal(7, 2) @default(0) @map("protein_g")
+  carbsG          Decimal?  @db.Decimal(7, 2) @default(0) @map("carbs_g")
+  fatG            Decimal?  @db.Decimal(7, 2) @default(0) @map("fat_g")
+  barcodeUpc      String?   @unique @db.VarChar(50) @map("barcode_upc")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @default(now()) @map("updated_at")
+
+  createdByUser   User?     @relation(fields: [createdByUserId], references: [clerkUserId], onDelete: SetNull, onUpdate: Cascade)
+  nutritionLogs   NutritionLog[]
+
+  @@index([name])
+  @@index([createdByUserId])
+  @@map("foods")
+}
+
+model NutritionLog {
+  nutritionLogId    Int        @id @default(autoincrement()) @map("nutrition_log_id")
+  userId            String     @map("user_id")
+  foodId            Int        @map("food_id")
+  loggedAt          DateTime   @map("logged_at")
+  mealType          MealTypeEnum @default(Snack) @map("meal_type")
+  quantityConsumed  Decimal    @db.Decimal(7, 2) @map("quantity_consumed")
+  notes             String?
+
+  user              User       @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade, onUpdate: Cascade)
+  food              Food       @relation(fields: [foodId], references: [foodId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([userId])
+  @@index([userId, loggedAt])
+  @@map("nutrition_logs")
+}

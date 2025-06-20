@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021", // Or a newer ES version
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./", // <-- Important: Set to project root
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": false, // Consider enabling for more robust code
+    "noImplicitAny": false,    // Consider enabling
+    "strictBindCallApply": false, // Consider enabling
+    "forceConsistentCasingInFileNames": false, // Consider enabling
+    "noFallthroughCasesInSwitch": false, // Consider enabling
+    "paths": { // <-- Important: Defines your aliases
+      "@/*": ["src/*"]
+    }
+  }
+}
