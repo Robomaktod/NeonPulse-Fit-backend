@@ -1,28 +1,18 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { DatabaseService } from '@/database/database.service';
-import { HttpService } from '@nestjs/axios';
 import axios from 'axios';
 import { PrismaService } from '../database/prisma.service';
-import { Food, User, NutritionLog, MealTypeEnum } from '@prisma/client';
 
 const OPENFOODFACTS_API_BASE_URL = 'https://world.openfoodfacts.org/api/v2/product/';
-//3017620422003
+
 @Injectable()
 export class FoodService {
   constructor(
-    private readonly httpService: HttpService,
     private readonly prisma: PrismaService
   ) {}
 
-  create(createFoodDto: Prisma.FoodCreateInput) {
-    return 'This action adds a new food';
-  }
-
   async searchFoodByName(name: string): Promise<any> {
     try {
-      
-
       const response = await axios.get(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&json=1`);
       const products = response.data.products;
 
@@ -30,14 +20,22 @@ export class FoodService {
         throw new NotFoundException(`No food found with name: ${name}`);
       }
 
-      return products[0];
-
+      const product = products[0];
+      return {
+        id: product._id,
+        product_name: product.product_name,
+        energy_kcal_100g: product.nutriments?.['energy-kcal_100g'],
+        fat_100g: product.nutriments?.['fat_100g'],
+        proteins_100g: product.nutriments?.['proteins_100g'],
+        sugars_100g: product.nutriments?.['sugars_100g'],
+        carbohydrates_100g: product.nutriments?.['carbohydrates_100g'],
+      };
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         console.error('OpenFoodFacts API error:', error.response.data);
         throw new InternalServerErrorException('Failed to fetch food from OpenFoodFacts API.');
       } else if (error instanceof NotFoundException) {
-        throw error; // Re-throw if it's our custom NotFoundException
+        throw error; 
       }
       console.error('Error in searchFoodByName:', error.message);
       throw new InternalServerErrorException('An unexpected error occurred while searching for food.');
@@ -67,7 +65,7 @@ export class FoodService {
   }
 
   findAll() {
-    return `This action returns all food`;
+    return this.prisma.food.findMany();
   }
 
   findOne(id: number) {
@@ -80,18 +78,6 @@ export class FoodService {
 
   remove(id: number) {
     return `This action removes a #${id} food`;
-  }
-
-  async logUserConsumption(userId: string, foodId: number, quantityConsumed: number, mealType: MealTypeEnum, loggedAt: Date = new Date()): Promise<NutritionLog> {
-    return this.prisma.nutritionLog.create({
-      data: {
-        userId,
-        foodId,
-        quantityConsumed,
-        mealType,
-        loggedAt,
-      },
-    });
   }
 
   async getUserDailyCalories(userId: string, date: Date): Promise<number> {
@@ -111,4 +97,5 @@ export class FoodService {
     });
     return consumptions.reduce((sum, c) => sum + Number(c.food.calories) * Number(c.quantityConsumed), 0);
   }
+
 }

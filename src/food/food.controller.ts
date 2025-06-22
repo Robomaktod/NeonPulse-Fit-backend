@@ -35,4 +35,5 @@ export class FoodController {
   remove(@Param('id') id: string) {
     return this.foodService.remove(+id);
   }
+  
 }

@@ -25,8 +25,8 @@ enum FriendshipStatus {
 }
 
 enum GenderEnum {
-    Male
-    Female
+  Male
+  Female
 }
 
 model User {
@@ -151,15 +151,14 @@ model Friendship {
 }
 
 model Food {
-  foodId          Int       @id @default(autoincrement()) @map("food_id")
+  foodId          String    @id @map("food_id")
   createdByUserId String?   @map("created_by_user_id")
   name            String    @db.VarChar(255)
-  servingSizeG    Decimal   @db.Decimal(7, 2) @map("serving_size_g")
   calories        Decimal   @db.Decimal(7, 2)
   proteinG        Decimal?  @db.Decimal(7, 2) @default(0) @map("protein_g")
   carbsG          Decimal?  @db.Decimal(7, 2) @default(0) @map("carbs_g")
   fatG            Decimal?  @db.Decimal(7, 2) @default(0) @map("fat_g")
-  barcodeUpc      String?   @unique @db.VarChar(50) @map("barcode_upc")
+  barcodeUpc      String?   @db.VarChar(50) @map("barcode_upc")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @default(now()) @map("updated_at")
 
@@ -174,7 +173,7 @@ model Food {
 model NutritionLog {
   nutritionLogId    Int        @id @default(autoincrement()) @map("nutrition_log_id")
   userId            String     @map("user_id")
-  foodId            Int        @map("food_id")
+  foodId            String     @map("food_id")
   loggedAt          DateTime   @map("logged_at")
   mealType          MealTypeEnum @default(Snack) @map("meal_type")
   quantityConsumed  Decimal    @db.Decimal(7, 2) @map("quantity_consumed")

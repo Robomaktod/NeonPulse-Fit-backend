@@ -8,6 +8,8 @@ import { FoodModule } from './food/food.module';
 // import { UsersModule } from './users/users.module';
 // import { ActivitiesModule } from './activities/activities.module';
 // import { ActivityLogsModule } from './activity-logs/activity-logs.module';
+import { ExerciseModule } from './exercise/exercise.module';
+import { NutritionModule } from './nutrition/nutrition.module';
 
 @Module({
   imports: [
@@ -16,7 +18,9 @@ import { FoodModule } from './food/food.module';
       envFilePath: '.env',
     }),
     DatabaseModule,
-    FoodModule
+    FoodModule,
+    ExerciseModule,
+    NutritionModule
     // UsersModule,
     // ActivitiesModule,
     // ActivityLogsModule,
