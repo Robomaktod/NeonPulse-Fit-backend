@@ -11,7 +11,7 @@ export class FoodService {
     private readonly prisma: PrismaService
   ) {}
 
-  async searchFoodByName(name: string): Promise<any> {
+  async searchFoodByName(name: string): Promise<any[]> {
     try {
       const response = await axios.get(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&json=1`);
       const products = response.data.products;
@@ -20,8 +20,8 @@ export class FoodService {
         throw new NotFoundException(`No food found with name: ${name}`);
       }
 
-      const product = products[0];
-      return {
+      // Map all products to a simplified structure
+      return products.slice(0, 20).map((product: any) => ({
         id: product._id,
         product_name: product.product_name,
         energy_kcal_100g: product.nutriments?.['energy-kcal_100g'],
@@ -29,7 +29,7 @@ export class FoodService {
         proteins_100g: product.nutriments?.['proteins_100g'],
         sugars_100g: product.nutriments?.['sugars_100g'],
         carbohydrates_100g: product.nutriments?.['carbohydrates_100g'],
-      };
+      }));
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         console.error('OpenFoodFacts API error:', error.response.data);

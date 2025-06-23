@@ -158,7 +158,6 @@ model Food {
   proteinG        Decimal?  @db.Decimal(7, 2) @default(0) @map("protein_g")
   carbsG          Decimal?  @db.Decimal(7, 2) @default(0) @map("carbs_g")
   fatG            Decimal?  @db.Decimal(7, 2) @default(0) @map("fat_g")
-  barcodeUpc      String?   @db.VarChar(50) @map("barcode_upc")
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @default(now()) @map("updated_at")
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { NutritionService } from './nutrition.service';
 import { Prisma } from '@prisma/client';
 
@@ -6,7 +6,7 @@ import { Prisma } from '@prisma/client';
 export class NutritionController {
   constructor(private readonly nutritionService: NutritionService) {}
 
-  @Post()
+  @Post("create")
   async create(@Body() body: { userId: string; foodId: string; quantityConsumed: number; mealType: string; loggedAt?: Date; notes?: string }) {
     const { userId, foodId, quantityConsumed, mealType, loggedAt, notes } = body;
     return this.nutritionService.create({
@@ -19,9 +19,11 @@ export class NutritionController {
     });
   }
 
-  @Get()
-  findAll() {
-    return this.nutritionService.findAll();
+  @Get("getAll")
+  async findAll(@Query('userId') userId: string, @Query('date') date?: string) {
+    // Parse date if provided
+    const parsedDate = date ? new Date(date) : undefined;
+    return this.nutritionService.findAll(userId, parsedDate);
   }
 
   @Patch(':id')

@@ -10,6 +10,7 @@ export class NutritionService {
    constructor(
       private readonly prisma: PrismaService
     ) {}
+
    async create({
     userId,
     foodId,
@@ -25,7 +26,7 @@ export class NutritionService {
     loggedAt?: Date;
     notes?: string;
   }): Promise<NutritionLog> {
-    // Try to find the food by barcodeUpc
+    console.error('Creating nutrition log:', { userId, foodId, quantityConsumed, mealType, loggedAt, notes });
     let dbFood = await this.prisma.food.findUnique({
       where: { foodId: foodId },
     });
@@ -38,18 +39,16 @@ export class NutritionService {
       }
       dbFood = await this.prisma.food.create({
         data: {
-          foodId: foodId, // Ensure foodId is a string or convert if needed
+          foodId: foodId,
           name: product.product_name || 'Unknown',
           calories: product.nutriments?.['energy-kcal_100g'] ?? 0,
           proteinG: product.nutriments?.['proteins_100g'] ?? 0,
           carbsG: product.nutriments?.['carbohydrates_100g'] ?? 0,
           fatG: product.nutriments?.['fat_100g'] ?? 0,
-          barcodeUpc: foodId,
         },
       });
     }
 
-    // Now add the nutrition log
     return this.prisma.nutritionLog.create({
       data: {
         quantityConsumed: new Decimal(quantityConsumed),
@@ -63,8 +62,21 @@ export class NutritionService {
     });
   }
 
-  findAll() {
+  async findAll(userId: string, date?: Date) {
+    console.error('Creating nutrition log:', { userId, date });
+    const targetDate = date ? new Date(date) : new Date();
+    targetDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(targetDate);
+    endDate.setHours(23, 59, 59, 999);
+
     return this.prisma.nutritionLog.findMany({
+      where: {
+        user: { clerkUserId: userId },
+        loggedAt: {
+          gte: targetDate,
+          lte: endDate,
+        },
+      },
       include: { food: true },
     });
   }
