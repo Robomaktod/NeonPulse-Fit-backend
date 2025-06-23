@@ -13,7 +13,7 @@ export class ExerciseService {
   }
 
   findAll() {
-    return `This action returns all exercise`;
+    return this.prisma.exerciseType.findMany();
   }
 
   findOne(id: number) {

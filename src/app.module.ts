@@ -10,6 +10,10 @@ import { FoodModule } from './food/food.module';
 // import { ActivityLogsModule } from './activity-logs/activity-logs.module';
 import { ExerciseModule } from './exercise/exercise.module';
 import { NutritionModule } from './nutrition/nutrition.module';
+import { ActivityModule } from './activity/activity.module';
+import { ProfileModule } from './profile/profile.module';
+import { WeightModule } from './weight/weight.module';
+import { ProgressModule } from './progress/progress.module';
 
 @Module({
   imports: [
@@ -20,7 +24,11 @@ import { NutritionModule } from './nutrition/nutrition.module';
     DatabaseModule,
     FoodModule,
     ExerciseModule,
-    NutritionModule
+    NutritionModule,
+    ActivityModule,
+    ProfileModule,
+    WeightModule,
+    ProgressModule
     // UsersModule,
     // ActivitiesModule,
     // ActivityLogsModule,
